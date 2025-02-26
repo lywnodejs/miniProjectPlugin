@@ -19,6 +19,7 @@ export default function Register (props) {
   const eid = props.eid;
   const lang = props.lang;
   const customCompany = props.customCompany;
+  const languageData = props.languageData || {};
   const token = props.token;
   const agencyId = props.agencyId;
   const offline = parsedParams?.l === '1';
@@ -32,7 +33,6 @@ export default function Register (props) {
   const [banner, setBanner] = useState('');
   const [showLive, setShowLive] = useState(false);
   const [theme, setTheme] = useState();
-  const [languageData, set_languageData] = useState();
   const [name_array, set_name_array] = useState([]);
   const [form_validFrom, set_form_validFrom] = useState({});
   const [show_success, set_show_success] = useState(false);
@@ -66,17 +66,18 @@ export default function Register (props) {
     }else{
       set_hasPrevPage(false);
     }
-    getLanguageData()
+    // getLanguageData()
   }, [])
 
-  const getLanguageData = ()=>{
-    Taro.request({
-      url: `${Config.liveUrl}/locales/${lang}.json`,
-      success: (res)=>{
-        set_languageData(res.data);
-      }
-    })
-  }
+  // const getLanguageData = ()=>{
+  //   Taro.request({
+  //     url: `${Config.liveUrl}/locales/${lang}.json`,
+  //     success: (res)=>{
+        
+  //       set_languageData(res.data);
+  //     }
+  //   })
+  // }
 
   useEffect(() => {
     if (props.detail && is_off) {

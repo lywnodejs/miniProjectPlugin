@@ -116,6 +116,7 @@ class CustomPicker extends Component{
     }
     render() {
         const { _isOpened, values, options,options1, options2 } = this.state
+        const { languageData } = this.props
         const rootClass = classNames('custom-picker',{
             'custom-picker-active': _isOpened
         })
@@ -125,8 +126,8 @@ class CustomPicker extends Component{
                 <View onClick={e => this.close(e)} className='custom-picker-overlay' />
                 <View className='custom-picker-container'>
                     <View className='custom-picker-head'>
-                        <View className='custom-picker-cancel' onClick={this.close.bind(this)}>取消</View>
-                        <View className='custom-picker-ok' onClick={this.changeData.bind(this)}>确定</View>
+                        <View className='custom-picker-cancel' onClick={this.close.bind(this)}>{languageData['common.button.cancel']}</View>
+                        <View className='custom-picker-ok' onClick={this.changeData.bind(this)}>{languageData['common.button.confirm']}</View>
                     </View>
                     {
                         this.props.renderHeader?
