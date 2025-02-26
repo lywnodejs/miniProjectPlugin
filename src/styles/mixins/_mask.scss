@@ -1,0 +1,12 @@
+@mixin mask-gradient-y($startColor: rgba(#000,0), $endColor: rgba(#000,.6)) {
+    position: relative;
+    &:after{
+        content: '';
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+        left: 0; top: 0;
+        @include gradient-y($startColor,$endColor);
+    }
+}

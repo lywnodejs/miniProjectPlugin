@@ -1,0 +1,19 @@
+/*
+* 多行文字超出隐藏
+* $line-num 行数
+* $line-height 行高
+*/
+@mixin text-truncate-lines($line-num:3, $line-height:1.5em){
+    overflow : hidden;
+    height:$line-height*$line-num;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp:$line-num;
+    -webkit-box-orient: vertical;
+}
+// 单行文字超出隐藏
+@mixin text-truncate {
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+}

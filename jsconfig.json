@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "@*": ["./src/*"],
+      "@coms": ["./src/plugin/components"],
+      "@pages": ["./src/plugin/pages"],
+      "@config": ["./src/baseConfig"],
+      "@styles": ["./src/styles"],
+      "@assets": ["./src/assets"]
+    }
+  }
+}

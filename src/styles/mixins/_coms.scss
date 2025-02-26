@@ -1,0 +1,8 @@
+@mixin tips-top-right($bgColor: rgba(0,0,0,.5), $color: #fff) {
+    color: $color;
+    font-size: 24px;
+    background-color: $bgColor;
+    border-top-left-radius: 29px;
+    border-bottom-left-radius: 29px;
+    padding: 17px 24px;
+}

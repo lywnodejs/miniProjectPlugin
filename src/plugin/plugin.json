@@ -1,0 +1,9 @@
+{
+  "publicComponents": {
+    "register": "components/register/register"
+  },
+  "pages": {
+    "live": "pages/live/live"
+  },
+  "main": "index.js"
+  }

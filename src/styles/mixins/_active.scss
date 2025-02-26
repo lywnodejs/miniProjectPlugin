@@ -1,0 +1,19 @@
+@mixin active {
+  transition: background-color 0.3s;
+
+  &:active {
+    background-color: $color-grey-5;
+  }
+}
+@mixin item-active {
+  transition: opacity 0.3s;
+  &:active {
+    opacity: $opacity-active;
+  }
+}
+@mixin btn-active {
+  transition: opacity 0.3s;
+  &:active {
+    opacity: $opacity-active;
+  }
+}
