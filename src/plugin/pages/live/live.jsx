@@ -49,8 +49,10 @@ export default function ActivityLive() {
 
   useEffect(()=>{
     const { encodeId,lang,is_test } = $instance.router.params;
-    getLanguageData(lang,is_test)
-    getRegistrationInfo(encodeId,lang,is_test)
+    console.log(encodeId,lang,is_test);
+    
+    getLanguageData(lang,is_test === 'true')
+    getRegistrationInfo(encodeId,lang,is_test === 'true')
   },[])
 
   const getLanguageData = (lang,is_test)=>{
@@ -116,15 +118,16 @@ export default function ActivityLive() {
 
   const toLive = ()=>{
     const { token,lang,is_test } = $instance.router.params;
+    let test = is_test === 'true';
     Taro.showLoading();
     Taro.request({
-      url: `${API_LIST[is_test?'dev':'prod'].baseUrl}/auth/get-session`,
+      url: `${API_LIST[test?'dev':'prod'].baseUrl}/auth/get-session`,
       header:{
         Authorization: `Bearer ${token}`
       },
       success: (res)=>{
         Taro.navigateToMiniProgram({
-          envVersion: is_test ? 'trial' : 'release',
+          envVersion: test ? 'trial' : 'release',
           appId: 'wx48123a3ae14d8588',
           path: `/pks/stream/prepare/prepare?scene=${encodeURIComponent(`page=${state === 2 ? 'replay': 'live'}&room=${room.id}&session=${decodeURIComponent(res.data.data.session)}&lang=${lang}`)}`,
         })
