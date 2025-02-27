@@ -3,10 +3,20 @@ import Taro from "@tarojs/taro"
 import { useEffect, useState } from "react"
 // import { getSession } from '@api/activity';
 import Loading from '@coms/loading/loading'
-import Config from '@config'
 import './live.scss'
 
-export default function ActivityLive(props) {
+let API_LIST = {
+  dev: {
+    baseUrl: 'https://api-agency-cms.agent.dragontrail.cn',
+    liveUrl:'https://api-live.agent.dragontrail.cn',
+  },
+  prod: {
+    baseUrl: 'https://api.agency-cms.dragontrail.com',
+    liveUrl:'https://api.ctalive.com',
+  }
+}
+
+export default function ActivityLive() {
   const $instance = Taro.getCurrentInstance();
   const [loading,set_loading] = useState(true);
   const [hasPrevPage,set_hasPrevPage] = useState(true);
@@ -14,8 +24,21 @@ export default function ActivityLive(props) {
   const [state,setState] = useState(null); // 2结束 1/进行中 0 未开始
   const [theme,setTheme] = useState();
   const [banner,setBanner] = useState('');
+  const [languageData,set_languageData] = useState({});
+
+  const t = (key,...args)=>{
+  
+    if(!languageData){return ''}
+    let transform_text = languageData[key] || '';
+    if (args.length === 0) {return transform_text}
+    let argIndex = 0;
+    let replaced = transform_text.replace(/\{.*?\}/g, (match) => {
+      return args[argIndex] !== undefined ? args[argIndex++] : match;
+    });
+    return replaced;
+  }
+
   useEffect(() => {
-    Taro.setNavigationBarTitle({title: '直播'})
     const pages = Taro.getCurrentPages();
     if(pages.length > 1){
       set_hasPrevPage(true);
@@ -25,20 +48,32 @@ export default function ActivityLive(props) {
   }, [])
 
   useEffect(()=>{
-    const { encodeId } = $instance.router.params;
-    getRegistrationInfo(encodeId)
+    const { encodeId,lang,is_test } = $instance.router.params;
+    getLanguageData(lang,is_test)
+    getRegistrationInfo(encodeId,lang,is_test)
   },[])
 
-  const getRegistrationInfo = (encodeId)=>{
+  const getLanguageData = (lang,is_test)=>{
+    Taro.request({
+      url: `${API_LIST[is_test?'dev':'prod'].liveUrl}/locales/${lang}.json`,
+      success: (res)=>{
+        set_languageData(res.data);
+        Taro.setNavigationBarTitle({title: res.data['common.text.live_title']})
+      }
+    })
+  }
+
+  const getRegistrationInfo = (encodeId,lang,is_test)=>{
     const { token, agencyId } = $instance.router.params;
     if(!encodeId) return;
     Taro.request({
-      url: `${Config.baseUrl}/api/v1/cta/hub-api`,
+      url: `${API_LIST[is_test?'dev':'prod'].baseUrl}/api/v1/cta/hub-api`,
       data: {
         action:'getEventInfo',
         agency_id:agencyId,
         event_id:encodeId,
         using_uuid: 'uuid',
+        lang: lang
       },
       header:{
         Authorization: `Bearer ${token}`
@@ -80,17 +115,18 @@ export default function ActivityLive(props) {
   }
 
   const toLive = ()=>{
-    const { token } = $instance.router.params;
+    const { token,lang,is_test } = $instance.router.params;
     Taro.showLoading();
     Taro.request({
-      url: `${Config.baseUrl}/auth/get-session`,
+      url: `${API_LIST[is_test?'dev':'prod'].baseUrl}/auth/get-session`,
       header:{
         Authorization: `Bearer ${token}`
       },
       success: (res)=>{
         Taro.navigateToMiniProgram({
+          envVersion: is_test ? 'trial' : 'release',
           appId: 'wx48123a3ae14d8588',
-          path: `/pks/stream/prepare/prepare?scene=${encodeURIComponent(`page=${state === 2 ? 'replay': 'live'}&room=${room.id}&session=${decodeURIComponent(res.data.data.session)}`)}`,
+          path: `/pks/stream/prepare/prepare?scene=${encodeURIComponent(`page=${state === 2 ? 'replay': 'live'}&room=${room.id}&session=${decodeURIComponent(res.data.data.session)}&lang=${lang}`)}`,
         })
       },
       complete: ()=>{
@@ -112,26 +148,26 @@ export default function ActivityLive(props) {
       <View className={`box ${state === 2 && 'end'} ${state === 1 && 'ing'} ${state === 0 && 'nostart'}`}>
       {/* nostart ing end */}
       {
-        !room && <View className="success_text nostart">暂无直播</View>
+        !room && <View className="success_text nostart">{t('live.text.no_live')}</View>
       }
       {
         room && <>
-          <View className="success_text ing">直播已开始</View>
-          <View className="success_text nostart">直播未开始</View>
-          <View className="success_text end">直播已结束</View>
+          <View className="success_text ing">{t('live.tip.live_start')}</View>
+          <View className="success_text nostart">{t('live.tip.live_no_start')}</View>
+          <View className="success_text end">{t('live.tip.live_end')}</View>
           <View className="desc">
             <View className="start_time">
               <View className="line"></View>
-              <View className="text">开始时间</View>
+              <View className="text">{t('common.tip.start_time')}</View>
               <View className="line"></View>
             </View>
             <View className="time">{room?.start_time}</View>
           </View>
           {
-            state !== 2 && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>立即观看</Button>
+            state !== 2 && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>{t('live.button.watch_now')}</Button>
           }
           {
-            state === 2 && room.type === 5 && room.replay_enabled && room.ext?.replay_video && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>观看回放</Button>
+            state === 2 && room.type === 5 && room.replay_enabled && room.ext?.replay_video && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>{t('live.button.watch_replay')}</Button>
           }
           
         </>
@@ -142,7 +178,7 @@ export default function ActivityLive(props) {
           {
             hasPrevPage &&  <View className="footer_btn" style={{color: theme,borderColor: theme}} onClick={()=>{
               Taro.navigateBack();
-            }}>返回</View>
+            }}>{t('common.button.back')}</View>
           }
           
           {/* <Navigator openType="switchTab" className="footer_btn" style={{color: theme,borderColor: theme}} url='/pages/index/index'>去首页</Navigator> */}

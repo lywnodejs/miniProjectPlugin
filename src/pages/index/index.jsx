@@ -7,7 +7,7 @@ import './index.scss'
 
 export default class Index extends Component {
   state = {
-    encodeId: '511e510b' // 501879cb
+    encodeId: '513e0e0b' // 501879cb
   }
   componentDidMount () {
     // myPluginInterface.sayHello()

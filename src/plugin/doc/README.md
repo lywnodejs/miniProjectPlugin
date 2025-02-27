@@ -16,6 +16,9 @@ Register组件用于处理活动报名表单，包括报名信息填写、提交
 | agencyId | String | 机构ID |
 | userInfo | Object | 用户信息 |
 | regions | Array | 地区数据 |
+| lang | String | 语言 |
+| languageData | Object | 语言数据 |
+| is_test | Boolean | 是否是测试环境 |
 | detail | Object | 活动详情 |
 | handleSubmit | Function | 提交回调，参数为表单数据和回调函数 |
 | handleCheckin | Function | 签到回调，参数为回调函数 |

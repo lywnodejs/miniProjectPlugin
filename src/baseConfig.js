@@ -46,7 +46,7 @@ function getConfig() {
     let env = info.miniProgram.envVersion
     return env == 'release' ? baseConfig.prod() : baseConfig.dev()
 }
-const bc = getConfig()
-// const bc = baseConfig.prod()
+// const bc = getConfig()
+const bc = baseConfig.prod()
 
 export default Object.assign({},baseConfig.options,bc)

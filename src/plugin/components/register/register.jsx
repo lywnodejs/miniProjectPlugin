@@ -19,6 +19,7 @@ export default function Register (props) {
   const eid = props.eid;
   const lang = props.lang;
   const customCompany = props.customCompany;
+  const is_test = props.is_test;
   const languageData = props.languageData || {};
   const token = props.token;
   const agencyId = props.agencyId;
@@ -66,18 +67,8 @@ export default function Register (props) {
     }else{
       set_hasPrevPage(false);
     }
-    // getLanguageData()
   }, [])
 
-  // const getLanguageData = ()=>{
-  //   Taro.request({
-  //     url: `${Config.liveUrl}/locales/${lang}.json`,
-  //     success: (res)=>{
-        
-  //       set_languageData(res.data);
-  //     }
-  //   })
-  // }
 
   useEffect(() => {
     if (props.detail && is_off) {
@@ -199,7 +190,7 @@ export default function Register (props) {
             if (!item.validations.required) {
               return true
             } else {
-              handleErrors(t('register.tip.input_label',item.placeholder))
+              handleErrors(t('register.tip.input_label',item.label))
               return false
             }
           }
@@ -495,7 +486,7 @@ export default function Register (props) {
           registration_state === 2 && show_success && <View className="success">
             <View className="success_text">{offline ? t('register.tip.sign_success') : t('register.tip.register_success')}</View>
             {
-              showLive && !offline && <Navigator style={{ backgroundColor: theme }} className='text-white text-center relative rounded-xl live_btn py-6 px-10' url={`plugin-private://wxd3c622771732fbab/pages/live/live?encodeId=${eid}&token=${token}&agencyId=${agencyId}`}>
+              showLive && !offline && <Navigator style={{ backgroundColor: theme }} className='text-white text-center relative rounded-xl live_btn py-6 px-10' url={`plugin-private://wxd3c622771732fbab/pages/live/live?encodeId=${eid}&token=${token}&agencyId=${agencyId}&lang=${lang}&is_test=${is_test}`}>
               {t('file.text.play_live')}
             </Navigator>
             }
