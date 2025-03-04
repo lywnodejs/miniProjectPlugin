@@ -116,6 +116,8 @@ Live页面用于展示和管理直播活动，包括直播状态显示、观看�
 | encodeId | String | 活动ID |
 | token | String | 用户token |
 | agencyId | String | 机构ID |
+| lang | String | 语言 |
+| is_test | Boolean | 是否是测试环境 |
 
 ### 主要方法
 
