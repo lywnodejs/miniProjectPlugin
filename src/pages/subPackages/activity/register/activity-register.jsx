@@ -36,7 +36,7 @@ export default function ActivityRegister() {
   const getRegistrationInfo = (user)=>{
     console.log('eid: ', api_list.baseUrl);
     Taro.request({
-      url:  api_list.baseUrl + `/api/v1/cta/hub-api?agency_id=${Config.agencyId}&action=getEventInfo&event_id=${eid}`,
+      url:  api_list.baseUrl + `/api/v1/live/hub-api?agency_id=${Config.agencyId}&action=getEventInfo&event_id=${eid}`,
     }).then(res=>{
       set_detail(res.data);
     })

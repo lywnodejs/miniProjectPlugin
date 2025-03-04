@@ -69,7 +69,7 @@ export default function ActivityLive() {
     const { token, agencyId } = $instance.router.params;
     if(!encodeId) return;
     Taro.request({
-      url: `${API_LIST[is_test?'dev':'prod'].baseUrl}/api/v1/cta/hub-api`,
+      url: `${API_LIST[is_test?'dev':'prod'].baseUrl}/api/v1/live/hub-api`,
       data: {
         action:'getEventInfo',
         agency_id:agencyId,
