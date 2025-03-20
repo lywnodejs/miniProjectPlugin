@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 import { useState, useEffect } from 'react'
-import { View, Button, Form, Image, Navigator } from '@tarojs/components'
+import { View, Button, Form, Image, Navigator,Icon } from '@tarojs/components'
 import ItemInput from '@coms/form/itemInput'
 import ItemSelect from '@coms/form/itemSelect'
 import ItemTextarea from '@coms/form/itemTextarea'
@@ -395,6 +395,12 @@ export default function Register (props) {
     props.handleCancel && props.handleCancel();
   }
 
+  const getBtnText = () => {
+    if(detail.is_special_events){
+      return '提交成功'
+    }
+    return t('register.tip.register_success')
+  }
 
 
   const registration_form = detail?.event.registration_form;
@@ -448,7 +454,7 @@ export default function Register (props) {
                   {
                     !show_success && <>
                       <Button formType={registration_state !== 0 ? ' ' : "submit"} className={`text-white relative live_submit ${registration_state !== 0 && 'disabled'}`} style={{ backgroundColor: theme }}>
-                        {registration_state === 1 ? t('register.text.register_auditing') : registration_state === 2 ? t('register.tip.register_success') : (registration_form.submit_text || t('register.button.submit'))}
+                        {registration_state === 1 ? t('register.text.register_auditing') : registration_state === 2 ? getBtnText() : (registration_form.submit_text || t('register.button.submit'))}
                       </Button>
                       {registration_state === 1 && off_registration_cancelable && <View className='canceled_click' onClick={canceled_click}>{t('register.button.register_cancel')}</View>}
                     </>
@@ -462,13 +468,20 @@ export default function Register (props) {
             !current_registrable && registration_state !== 2 && <View className="time_box">
               <View className='px-10 py-14'>
                 <Button className='text-white relative live_submit disabled' style={{ backgroundColor: theme }}>
-                  {detail?.event.registration_state === 0 && t('event.tip.register_not_start')}
-                  {detail?.event.registration_state === 2 && t('event.tip.register_end')}
+                  {detail?.event.registration_state === 0 && !detail.is_special_events && t('event.tip.register_not_start')}
+                  {detail?.event.registration_state === 2 && !detail.is_special_events && t('event.tip.register_end')}
+
+                  {detail?.event.registration_state === 0 && detail.is_special_events && '未开始'}
+                  {detail?.event.registration_state === 2 && detail.is_special_events && '已截止'}
                 </Button>
+                
               </View>
 
-              {detail?.event.registration_state === 0 && `${t('event.text.apply_time_start')}：${detail.event.registration_start_time}`}
-              {detail?.event.registration_state === 2 && `${t('event.text.apply_time_end')}：${detail.event.registration_deadline}`}
+              {detail?.event.registration_state === 0 && !detail.is_special_events && `${t('event.text.apply_time_start')}：${detail.event.registration_start_time}`}
+              {detail?.event.registration_state === 2 && !detail.is_special_events && `${t('event.text.apply_time_end')}：${detail.event.registration_deadline}`}
+
+              {detail?.event.registration_state === 0 && detail.is_special_events && `开始时间：${detail.event.registration_start_time}`}
+              {detail?.event.registration_state === 2 && detail.is_special_events && `截止时间：${detail.event.registration_deadline}`}
             </View>
           }
 
@@ -484,7 +497,14 @@ export default function Register (props) {
         </Form>
         {
           registration_state === 2 && show_success && <View className="success">
-            <View className="success_text">{offline ? t('register.tip.sign_success') : t('register.tip.register_success')}</View>
+            <View className="text-center mb-4"><Icon type="success" size="60" /></View>
+            {
+              !detail.is_special_events && <View className="success_text">{offline ? t('register.tip.sign_success') : t('register.tip.register_success')}</View>
+            }
+            {
+              detail.is_special_events && <View className="success_text">提交成功</View>
+            }
+            
             {
               showLive && !offline && <Navigator style={{ backgroundColor: theme }} className='text-white text-center relative rounded-xl live_btn py-6 px-10' url={`plugin-private://wxd3c622771732fbab/pages/live/live?encodeId=${eid}&token=${token}&agencyId=${agencyId}&lang=${lang}&is_test=${is_test}`}>
               {t('file.text.play_live')}
@@ -493,7 +513,7 @@ export default function Register (props) {
           </View>
         }
 
-        <View className="footer pb-20">
+        <View className={`footer pb-20 ${detail.is_special_events ? '!hidden' : ''}`}>
           <View className='back footer_btn' style={{ color: theme, borderColor: theme }} onClick={() => {
             if (hasPrevPage) { return props.navigateBack() }
             props.toEventHome && props.toEventHome();
