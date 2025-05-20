@@ -138,6 +138,8 @@ export default function ActivityLive() {
     })
   }
 
+  let is_published = room.playback?.is_published || false;
+
     if (loading) {
       return <View className='flex justify-center items-center h-screen'><Loading /></View>
     }
@@ -170,7 +172,10 @@ export default function ActivityLive() {
             state !== 2 && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>{t('live.button.watch_now')}</Button>
           }
           {
-            state === 2 && room.type === 5 && room.replay_enabled && room.ext?.replay_video && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>{t('live.button.watch_replay')}</Button>
+            state === 2 && room.type === 5 && is_published && <Button className="text-white relative live_btn" onClick={toLive} style={{backgroundColor: theme}}>{t('live.button.watch_replay')}</Button>
+          }
+          {
+            state === 2 && room.type === 5 && !is_published && <View style={{color: '#000',fontSize: '20px',textAlign: 'center',marginTop: '20px'}}>{t('live.text.live_play_back')}</View>
           }
           
         </>
