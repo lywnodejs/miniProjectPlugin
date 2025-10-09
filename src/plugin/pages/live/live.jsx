@@ -3,6 +3,7 @@ import Taro from "@tarojs/taro"
 import { useEffect, useState } from "react"
 // import { getSession } from '@api/activity';
 import Loading from '@coms/loading/loading'
+import { convertTimeByOffset } from '../../index.js';
 import './live.scss'
 
 let API_LIST = {
@@ -98,6 +99,11 @@ export default function ActivityLive() {
             }
           })
         }
+        let fromOffset = {offset:8,timezone:'UTC+08:00'};
+        if(eventData?.timezones && eventData.timezones.length > 0){
+          fromOffset = eventData.timezones[0];
+        }
+        live_item.start_time = convertTimeByOffset(live_item.start_time,8,fromOffset.offset) + ` (${fromOffset.timezone})`;
         initRoom(live_item);
         let banner_url = eventData.registration_form?.banner?.url;
         setTheme(res.data.data.landing_page.theme_color);

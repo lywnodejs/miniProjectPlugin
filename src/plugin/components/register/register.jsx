@@ -9,6 +9,7 @@ import ItemCheckbox from '@coms/form/itemCheckbox'
 import ItemSelectCascade from '@coms/form/itemSelectCascade'
 import ItemSelectCompany from '@coms/form/itemSelectCompany'
 import Loading from '@coms/loading/loading'
+import { convertTimeByOffset } from '../../index.js';
 import Config from '@config'
 import './register.scss'
 import Schema from "async-validator"
@@ -102,6 +103,12 @@ export default function Register (props) {
 
   const getRegistrationInfo = (res) => {
     if (res.data) {
+      let fromOffset = {offset:8,timezone:'UTC+08:00'};
+      if(res.data.event?.timezones && res.data.event.timezones.length > 0){
+        fromOffset = res.data.event.timezones[0];
+      }
+      res.data.event.registration_start_time = convertTimeByOffset(res.data.event.registration_start_time,8,fromOffset.offset) + `（${fromOffset.timezone}）`;
+      res.data.event.registration_deadline = convertTimeByOffset(res.data.event.registration_deadline,8,fromOffset.offset) + `（${fromOffset.timezone}）`;
       set_detail(res.data);
       set_off_registration_cancelable(res.data?.event.registration_cancelable || false);
       let registrable = res.data?.event.registrable;
