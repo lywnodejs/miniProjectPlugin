@@ -47,6 +47,7 @@ export default function Register (props) {
   const [registration_state, set_registration_state] = useState(0); // 已报名状态 0 未报名 ·1 审核中 2 已通过 3 已拒绝
   const [off_registration_cancelable, set_off_registration_cancelable] = useState(false); // 是否可以取消报名
   const [off_checkin, set_off_checkin] = useState(false); // 是否已报名未签到
+  const [check_status, set_check_status] = useState(1); // 0 签到失败 1 签到成功
 
   const t = (key,...args)=>{
   
@@ -342,7 +343,10 @@ export default function Register (props) {
     if (offline === true) {
       if (registration_state !== 0) {
         return props.handleCheckin(data=>{
-          if(data.code === 200){
+          if(data.code === 200  || data.code === 0){
+            if(data?.data?.is_bug){
+              set_check_status(0);
+            }
             set_registration_state(2);
             set_show_success(true);
           }
@@ -382,13 +386,24 @@ export default function Register (props) {
       data.action = 'eventRegister';
       // 可以提交
       props.handleSubmit(data,(data)=>{
-        if(data.code === 200){
+        if(data.code === 200 || data.code === 0){
           const off_registration_approval_required = detail?.event.registration_approval_required || false;
           if(off_registration_approval_required && !offline){
             set_registration_state(1);
           }else{
-            set_show_success(true);
-            set_registration_state(2);
+            if(data?.data?.is_bug){
+              if(offline){
+                set_check_status(0);
+                set_registration_state(2);
+                set_show_success(true);
+              }else{
+                Taro.showToast({icon: 'none',title: t('apply_info_need_audit'),duration: 3000});
+                set_registration_state(1);
+              }
+            }else{
+              set_registration_state(2);
+              set_show_success(true);
+            }
           }
         }else{
           Taro.showToast({icon: 'none', title: data?.message || t('common.tip.network_error')})
@@ -504,9 +519,9 @@ export default function Register (props) {
         </Form>
         {
           registration_state === 2 && show_success && <View className="success">
-            <View className="text-center mb-4"><Icon type="success" size="60" /></View>
+            <View className="text-center mb-4"><Icon type={check_status === 1 ? 'success' : 'warn'} size="60" /></View>
             {
-              !detail.is_special_events && <View className="success_text">{offline ? t('register.tip.sign_success') : t('register.tip.register_success')}</View>
+              !detail.is_special_events && <View className="success_text">{offline ? check_status === 1 ? t('register.tip.sign_success') : '签到失败' : t('register.tip.register_success')}</View>
             }
             {
               detail.is_special_events && <View className="success_text">提交成功</View>
