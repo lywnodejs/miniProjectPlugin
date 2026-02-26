@@ -21,7 +21,7 @@ class CustomPicker extends Component{
             })
             !isOpened && this.close()
         }
-        
+
         if (value != this.state.value) {
             this.setState({
                 value:value
@@ -39,7 +39,11 @@ class CustomPicker extends Component{
         }, this.handleClose )
     }
     changeData() {
-        this.props.onChange(this.state.value || this.props.range[0].value)
+      let val = this.state.value;
+      if(val === '' || val === undefined || val === null){
+        val = this.props.range[0].value;
+      }
+        this.props.onChange(val)
         Taro.nextTick(() => {
             this.close()
         })
@@ -75,7 +79,7 @@ class CustomPicker extends Component{
     render() {
         const { _isOpened, value } = this.state
         const { range,languageData } = this.props
-        
+
         const rootClass = classNames('custom-picker',{
             'custom-picker-active': _isOpened
         })
@@ -92,7 +96,7 @@ class CustomPicker extends Component{
                         this.props.renderHeader?
                         <View>{this.props.renderHeader}</View>:null
                     }
-                    <PickerView 
+                    <PickerView
                         indicatorClass='custom-picker-main'
                         value={[this.props.range.findIndex(item=>item.value === value)]}
                         style={dfStyle}

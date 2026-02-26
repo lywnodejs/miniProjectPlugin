@@ -10,13 +10,16 @@ export default function ActivityRegister() {
     liveUrl:'https://api-live.agent.dragontrail.cn',
   }
 
+  // baseUrl: 'https://api.agency-cms.dragontrail.com',
+  // liveUrl:'https://ctalive.com',
+
   const eid = Taro.getStorageSync('encodeId')
   const offline = false;
   const [detail,set_detail]= useState();
   const [regions,set_regions] = useState([]);
   const [languageData,set_languageData] = useState({});
 
-  
+
 
   useEffect(() => {
     getRegistrationInfo();
