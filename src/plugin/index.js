@@ -14,12 +14,12 @@ export function brightenKeyword(result,keyword) {
       res = result.replace(Reg, match => `<span class='search-name'>${match}</span>`)
   }
   console.log(res);
-  
+
   return res
 }
 
 export function debounce(func, wait, flag) {
-  let timer, args, that; 
+  let timer, args, that;
   return function (args) {
   //args包含了func的事件对象,that为func的this指向(应当指向事件源)
       args = arguments;
@@ -67,7 +67,7 @@ export const getLocalTimezone = () => {
 export const convertTimeByOffset = (dateTime, fromOffset, toOffset, format = 'YYYY-MM-DD HH:mm:ss') => {
   try {
       let sourceDate;
-      
+
       // 处理输入时间
       if (typeof dateTime === 'string') {
           dateTime = dateTime.replaceAll('-','/');
@@ -77,27 +77,27 @@ export const convertTimeByOffset = (dateTime, fromOffset, toOffset, format = 'YY
       } else {
           throw new Error('无效的时间格式');
       }
-      
+
       // 验证时间有效性
       if (isNaN(sourceDate.getTime())) {
           throw new Error('无效的时间');
       }
-      
+
       // 验证偏移量参数
       if (typeof fromOffset !== 'number' || typeof toOffset !== 'number') {
           throw new Error('时区偏移量必须是数字');
       }
-      
+
       if (fromOffset < -12 || fromOffset > 14 || toOffset < -12 || toOffset > 14) {
           throw new Error('时区偏移量超出有效范围（-12 到 +14）');
       }
-      
+
       // 计算时区差值（小时）
       const offsetDiff = toOffset - fromOffset;
-      
+
       // 转换时间
       const convertedTime = new Date(sourceDate.getTime() + offsetDiff * 60 * 60 * 1000);
-      
+
       // 格式化输出
       const year = convertedTime.getFullYear();
       const month = String(convertedTime.getMonth() + 1).padStart(2, '0');
@@ -105,7 +105,7 @@ export const convertTimeByOffset = (dateTime, fromOffset, toOffset, format = 'YY
       const hours = String(convertedTime.getHours()).padStart(2, '0');
       const minutes = String(convertedTime.getMinutes()).padStart(2, '0');
       const seconds = String(convertedTime.getSeconds()).padStart(2, '0');
-      
+
       // 根据格式返回
       switch (format) {
           case 'YYYY-MM-DD':
@@ -124,7 +124,7 @@ export const convertTimeByOffset = (dateTime, fromOffset, toOffset, format = 'YY
           default:
               return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
       }
-      
+
   } catch (error) {
       console.error('时区转换错误:', error.message);
       return false;
@@ -140,9 +140,8 @@ export const compareTimeByOffset = (fromTime, fromOffset) => {
   let { offsetHours } = getLocalTimezone();
   let beforeTime = convertTimeByOffset(fromTime, fromOffset,offsetHours); //传入的时间转换为当地时区时间
   let currentTime = new Date();
-  console.log(beforeTime,currentTime);
 
-  return beforeTime > afterTime;
+  return beforeTime > currentTime;
 };
 
 
