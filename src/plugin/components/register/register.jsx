@@ -26,6 +26,7 @@ export default function Register (props) {
   const agencyId = props.agencyId;
   const offline = parsedParams?.l === '1';
   const user_limit_exceed = parsedParams?.e === '1'; // 是否忽略报名限制
+  const modelId = parsedParams?.modelId || 0; // 点击进来的模块id
   const user = props.userInfo;
   const regions = props.regions;
   const [hasPrevPage, set_hasPrevPage] = useState(true);
@@ -34,6 +35,7 @@ export default function Register (props) {
   const [loading, setLoading] = useState(true);
   const [banner, setBanner] = useState('');
   const [showLive, setShowLive] = useState(false);
+  const [is_custom_module, set_is_custom_module] = useState(false);
   const [theme, setTheme] = useState();
   const [name_array, set_name_array] = useState([]);
   const [form_validFrom, set_form_validFrom] = useState({});
@@ -50,7 +52,7 @@ export default function Register (props) {
   const [check_status, set_check_status] = useState(1); // 0 签到失败 1 签到成功
 
   const t = (key,...args)=>{
-  
+
     if(!languageData){return ''}
     let transform_text = languageData[key] || '';
     if (args.length === 0) {return transform_text}
@@ -123,7 +125,7 @@ export default function Register (props) {
           show_toast(res.data);
         }
       }
-      
+
     }
     if (res.data.registration !== null) {
       let registration = res.data.registration;
@@ -163,11 +165,19 @@ export default function Register (props) {
     let form_user_data = {};
     let banner_url = event.registration_form?.banner?.url;
     if (res.data.landing_page) {
+      let next_is_custom = false;
       res.data.landing_page.modules.map(item => {
-        if (item.slug === 'live' && item.show) {
+        if (item.id ==  modelId && item.slug.startsWith('custom-')) {
+          next_is_custom = true;
+        }
+        if (!next_is_custom && item.slug === 'live' && item.show) {
           if (item.value && item.value.length !== 0) { setShowLive(true); }
         }
       })
+      set_is_custom_module(next_is_custom);
+      if (next_is_custom) {
+        setShowLive(false);
+      }
     }
     let fields = event.registration_form?.fields;
     let form_valid_from = {};
@@ -351,7 +361,7 @@ export default function Register (props) {
             set_show_success(true);
           }
         }) // 签到
-      } 
+      }
     }
     let data = e.detail.value
     let filters_form_validFrom = {}; // 更新之后的表单验证规则
@@ -372,7 +382,7 @@ export default function Register (props) {
     validator.validate(data, (errors) => {
       if (errors) {
         console.log("出错啦", errors)
-        return 
+        return
       }
       name_array.map(item=>{
         if(data[item]){
@@ -408,13 +418,24 @@ export default function Register (props) {
         }else{
           Taro.showToast({icon: 'none', title: data?.message || t('common.tip.network_error')})
         }
-        
+
       });
     })
   }
 
   const canceled_click = () => {
     props.handleCancel && props.handleCancel();
+  }
+
+  const handleContinue = () => {
+    if (hasPrevPage) {
+      try {
+        return props.toNext && props.toNext();
+      } catch (error) {
+        return props.navigateBack && props.navigateBack();
+      }
+      return props.navigateBack && props.navigateBack();
+    }
   }
 
   const getBtnText = () => {
@@ -496,7 +517,7 @@ export default function Register (props) {
                   {detail?.event.registration_state === 0 && detail.is_special_events && '未开始'}
                   {detail?.event.registration_state === 2 && detail.is_special_events && '已截止'}
                 </Button>
-                
+
               </View>
 
               {detail?.event.registration_state === 0 && !detail.is_special_events && `${t('event.text.apply_time_start')}：${detail.event.registration_start_time}`}
@@ -526,11 +547,16 @@ export default function Register (props) {
             {
               detail.is_special_events && <View className="success_text">提交成功</View>
             }
-            
+
             {
               showLive && !offline && <Navigator style={{ backgroundColor: theme }} className='text-white text-center relative rounded-xl live_btn py-6 px-10' url={`plugin-private://wxd3c622771732fbab/pages/live/live?encodeId=${eid}&token=${token}&agencyId=${agencyId}&lang=${lang}&is_test=${is_test}`}>
               {t('file.text.play_live')}
             </Navigator>
+            }
+            {
+              is_custom_module && <View style={{ backgroundColor: theme }} className='text-white text-center relative rounded-xl live_btn py-6 px-10' onClick={handleContinue}>
+                {t('register.text.next')}
+              </View>
             }
           </View>
         }

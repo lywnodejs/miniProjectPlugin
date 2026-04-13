@@ -66,7 +66,7 @@ export default function ActivityRegister() {
 
 
   const extraProps = {
-    parsedParams:{l:'2'},
+    parsedParams:{l:'2',modelId:10039},
     eid:eid, // 活动id
     lang:'zh-CN', // 当前语言
     agencyId:Config.agencyId, // 机构id
@@ -81,6 +81,11 @@ export default function ActivityRegister() {
     handleCheckin:(callback)=>callback({code:200}), // 签到
     handleCancel:()=>{}, // 取消报名
     navigateBack:Taro.navigateBack,
+    toNext :()=>{
+      Taro.redirectTo({
+        url: `/pages/subPackages/activity/home/activity-home?scene=${encodeURIComponent('eid=' + eid + '&modelId=' + parsedParams.modelId)}`,
+      })
+    }, // 前往下一步
     toEventHome:()=>{
       Taro.redirectTo({
         url: `/pages/subPackages/activity/home/activity-home?scene=${encodeURIComponent('eid=' + eid)}`,
