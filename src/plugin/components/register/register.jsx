@@ -14,6 +14,8 @@ import Config from '@config'
 import './register.scss'
 import Schema from "async-validator"
 
+const CHINA_ONLY_COUNTRY_ID = 6906;
+
 export default function Register (props) {
 
   const parsedParams = props.parsedParams; // 暂时保留的参数 后期可能需要
@@ -103,6 +105,37 @@ export default function Register (props) {
     }
   }
 
+  const normalizeAddressValue = (rawValue, chinaOnly = false) => {
+    if (rawValue === '' || rawValue === undefined || rawValue === null) {
+      return '';
+    }
+
+    const nextValue = (Array.isArray(rawValue) ? rawValue : `${rawValue}`.split(','))
+      .filter(item => item !== '' && item !== undefined && item !== null);
+
+    if (nextValue.length === 0) {
+      return '';
+    }
+    if (!chinaOnly) {
+      return nextValue;
+    }
+    if (`${nextValue[0]}` !== `${CHINA_ONLY_COUNTRY_ID}`) {
+      return '';
+    }
+    return [CHINA_ONLY_COUNTRY_ID, ...nextValue.slice(1, 3)];
+  }
+
+  const normalizeAddressFields = (fields = [], values = {}) => {
+    const nextValues = { ...values };
+    fields.forEach(item => {
+      if (item.attributes.type !== 'address') {
+        return;
+      }
+      nextValues[item.uuid] = normalizeAddressValue(nextValues[item.uuid], !!item.attributes.china_only);
+    });
+    return nextValues;
+  }
+
 
   const getRegistrationInfo = (res) => {
     if (res.data) {
@@ -127,11 +160,10 @@ export default function Register (props) {
       }
 
     }
+    let registration_values = null;
     if (res.data.registration !== null) {
       let registration = res.data.registration;
-      let user_info = registration.values;
-      set_userInfo(user_info);
-      set_form_data(user_info);
+      registration_values = registration.values || {};
       let use_registration_state = 0;
       if (registration?.state !== 3) {
         use_registration_state = registration?.state;
@@ -245,9 +277,14 @@ export default function Register (props) {
         })
       }
     })
-    if (res.data.registration === null && user?.id) {
-      set_userInfo(form_user_data);
-      set_form_data(form_user_data);
+    if (registration_values) {
+      const next_registration_values = normalizeAddressFields(fields, registration_values);
+      set_userInfo(next_registration_values);
+      set_form_data(next_registration_values);
+    } else if (user?.id) {
+      const next_form_user_data = normalizeAddressFields(fields, form_user_data);
+      set_userInfo(next_form_user_data);
+      set_form_data(next_form_user_data);
     }
     set_name_array(form_names_array);
     set_form_validFrom(form_valid_from)
@@ -330,7 +367,7 @@ export default function Register (props) {
         return <ItemSelectCascade languageData={languageData} options={item.attributes.options} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} />
       }
       if (item.attributes.type === 'address') {
-        return <ItemSelectCascade languageData={languageData} options={regions} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} />
+        return <ItemSelectCascade languageData={languageData} options={regions} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} chinaOnly={!!item.attributes.china_only} defaultCountryId={CHINA_ONLY_COUNTRY_ID} />
       }
       if (item.attributes.type === 'single') {
         return <>
@@ -364,6 +401,13 @@ export default function Register (props) {
       }
     }
     let data = e.detail.value
+    detail?.event.registration_form?.fields?.forEach(item => {
+      if (item.attributes.type !== 'address') {
+        return;
+      }
+      const normalizedValue = normalizeAddressValue(data[item.uuid], !!item.attributes.china_only);
+      data[item.uuid] = Array.isArray(normalizedValue) ? normalizedValue.join(',') : normalizedValue;
+    })
     let filters_form_validFrom = {}; // 更新之后的表单验证规则
     name_array.map(item => { // 表单值为数组格式的，转为字符串
       if (Array.isArray(data[item])) {
@@ -378,6 +422,7 @@ export default function Register (props) {
       }
       filters_form_validFrom[key] = form_validFrom[key];
     })
+    debugger
     const validator = new Schema(filters_form_validFrom);
     validator.validate(data, (errors) => {
       if (errors) {
