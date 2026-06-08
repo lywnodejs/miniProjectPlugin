@@ -98,6 +98,13 @@ export default function ActivityLive() {
               }
             }
           })
+          // res.data.data.landing_page.modules.some(item=>{
+          //   if(item.slug !== 'live' || !Array.isArray(item.value) || item.value.length === 0){
+          //     return false;
+          //   }
+          //   live_item = roomList.find(liveItem => item.value.includes(liveItem.id)) || null;
+          //   return !!live_item;
+          // })
         }
         let fromOffset = {offset:8,timezone:'UTC+08:00'};
         if(eventData?.timezones && eventData.timezones.length > 0){

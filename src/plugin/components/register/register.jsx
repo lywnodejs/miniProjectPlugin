@@ -422,7 +422,6 @@ export default function Register (props) {
       }
       filters_form_validFrom[key] = form_validFrom[key];
     })
-    debugger
     const validator = new Schema(filters_form_validFrom);
     validator.validate(data, (errors) => {
       if (errors) {
