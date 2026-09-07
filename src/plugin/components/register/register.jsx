@@ -6,6 +6,7 @@ import ItemSelect from '@coms/form/itemSelect'
 import ItemTextarea from '@coms/form/itemTextarea'
 import ItemRadio from '@coms/form/itemRadio'
 import ItemCheckbox from '@coms/form/itemCheckbox'
+import ItemFile from '@coms/form/itemFile'
 import ItemSelectCascade from '@coms/form/itemSelectCascade'
 import ItemSelectCompany from '@coms/form/itemSelectCompany'
 import Loading from '@coms/loading/loading'
@@ -252,6 +253,12 @@ export default function Register (props) {
       if(item.attributes.type === 'radio' || item.attributes.type === 'checkbox' || item.type === 'select'){
         rule.message = () => handleErrors(t('register.tip.select_label',item.label));
       }
+      if (item.type === 'file') {
+        rule.message = () => {
+          let uploadTip = lang === 'en' ? 'Please upload ' : lang === 'zh-TW' ? '請上傳' : '请上传';
+          handleErrors(uploadTip + item.label)
+        };
+      }
 
       if (item.name === 'region') {
         form_user_data[item.uuid] = copy_user['region'];
@@ -361,6 +368,9 @@ export default function Register (props) {
     }
     if (item.type === 'textarea') {
       return <ItemTextarea maxlength={item.validations.maxLength} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} />
+    }
+    if (item.type === 'file') {
+      return <ItemFile languageData={languageData} lang={lang} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} subType={item.attributes?.type || 'file'} is_test={is_test} token={token} />
     }
     if (item.type === 'select') {
       if (item.attributes.type === 'cascade') {
