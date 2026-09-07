@@ -96,11 +96,15 @@ export default function ItemFile({
   }
 
   const showTip = (msg) => {
-    Taro.showToast({
+    Taro.hideLoading()
+    setTimeout(() => {
+      Taro.showToast({
       icon: 'none',
       title: msg || text('activity.operation_failed', '操作失败'),
       duration: 2500,
     })
+    }, 300);
+    
   }
 
   const handleUploaded = async (filePath, file) => {
