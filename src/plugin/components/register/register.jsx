@@ -139,6 +139,15 @@ export default function Register (props) {
 
 
   const getRegistrationInfo = (res) => {
+    const supportsUnregisteredCheckin = res?.data?.event?.supports_unregistered_checkin;
+    const registrationRecord = res?.data?.registration;
+    const registrationStatus = Number(registrationRecord?.state);
+    const hasValidRegistration = !!(
+      registrationRecord &&
+      !registrationRecord?.canceled_at &&
+      (Number.isNaN(registrationStatus) || registrationStatus !== 0)
+    );
+
     if (res.data) {
       let fromOffset = {offset:8,timezone:'UTC+08:00'};
       if(res.data.event?.timezones && res.data.event.timezones.length > 0){
@@ -188,6 +197,12 @@ export default function Register (props) {
         }
       }
       set_registration_state(use_registration_state);
+    }
+    if (offline && supportsUnregisteredCheckin === false && !hasValidRegistration) {
+      set_check_status(0);
+      set_registration_state(2);
+      set_show_success(true);
+      set_current_registrable(false);
     }
     let event = res.data.event;
     let copy_user = {
