@@ -14,7 +14,7 @@ export default function ActivityRegister() {
   // liveUrl:'https://ctalive.com',
 
   const eid = Taro.getStorageSync('encodeId')
-  const offline = false;
+  const offline = true;
   const [detail,set_detail]= useState();
   const [regions,set_regions] = useState([]);
   const [languageData,set_languageData] = useState({});

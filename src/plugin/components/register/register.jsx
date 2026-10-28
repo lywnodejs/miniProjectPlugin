@@ -142,10 +142,12 @@ export default function Register (props) {
     const supportsUnregisteredCheckin = res?.data?.event?.supports_unregistered_checkin;
     const registrationRecord = res?.data?.registration;
     const registrationStatus = Number(registrationRecord?.state);
+    // 只有「报名成功」即审核通过(state=2)才算有效报名；
+    // 未报名(0) / 审核中(1) / 审核拒绝(3) / 已取消 都视为报名未成功，不支持签到
     const hasValidRegistration = !!(
       registrationRecord &&
       !registrationRecord?.canceled_at &&
-      (Number.isNaN(registrationStatus) || registrationStatus !== 0)
+      registrationStatus === 2
     );
 
     if (res.data) {
@@ -198,6 +200,8 @@ export default function Register (props) {
       }
       set_registration_state(use_registration_state);
     }
+    // 活动关闭「支持未报名签到」时，只有报名成功(审核通过)的用户才能签到，
+    // 未报名 / 审核中 / 审核拒绝 一律提示签到失败
     if (offline && supportsUnregisteredCheckin === false && !hasValidRegistration) {
       set_check_status(0);
       set_registration_state(2);
@@ -411,6 +415,13 @@ export default function Register (props) {
     }
   }
 
+  // 审核拒绝(state=3)且活动关闭「审核拒绝后重新报名」时，不允许再提交报名，按钮置灰并提示
+  const refusedNoReapply = !!(
+    Number(detail?.registration?.state) === 3 &&
+    !detail?.registration?.canceled_at &&
+    detail?.event?.registration_reapply_after_refused === false
+  );
+
   const formSubmit = (e) => {
     if (offline === true) {
       if (registration_state !== 0) {
@@ -424,6 +435,10 @@ export default function Register (props) {
           }
         }) // 签到
       }
+    }
+    if (refusedNoReapply) {
+      Taro.showToast({ icon: 'none', title: t('register.button.refused_no_reapply'), duration: 3000 });
+      return
     }
     let data = e.detail.value
     detail?.event.registration_form?.fields?.forEach(item => {
@@ -565,8 +580,8 @@ export default function Register (props) {
                 <>
                   {
                     !show_success && <>
-                      <Button formType={registration_state !== 0 ? ' ' : "submit"} className={`text-white relative live_submit ${registration_state !== 0 && 'disabled'}`} style={{ backgroundColor: theme }}>
-                        {registration_state === 1 ? t('register.text.register_auditing') : registration_state === 2 ? getBtnText() : (registration_form.submit_text || t('register.button.submit'))}
+                      <Button formType={registration_state !== 0 || refusedNoReapply ? ' ' : "submit"} className={`text-white relative live_submit ${(registration_state !== 0 || refusedNoReapply) && 'disabled'}`} style={{ backgroundColor: theme }}>
+                        {refusedNoReapply ? t('register.button.refused_no_reapply') : registration_state === 1 ? t('register.text.register_auditing') : registration_state === 2 ? getBtnText() : (registration_form.submit_text || t('register.button.submit'))}
                       </Button>
                       {registration_state === 1 && off_registration_cancelable && <View className='canceled_click' onClick={canceled_click}>{t('register.button.register_cancel')}</View>}
                     </>
@@ -611,10 +626,10 @@ export default function Register (props) {
           registration_state === 2 && show_success && <View className="success">
             <View className="text-center mb-4"><Icon type={check_status === 1 ? 'success' : 'warn'} size="60" /></View>
             {
-              !detail.is_special_events && <View className="success_text">{offline ? check_status === 1 ? t('register.tip.sign_success') : '签到失败' : t('register.tip.register_success')}</View>
+              !detail.is_special_events && <View className="success_text">{offline ? check_status === 1 ? t('register.tip.sign_success') : t('register.tip.sign_error') : t('register.tip.register_success')}</View>
             }
             {
-              detail.is_special_events && <View className="success_text">提交成功</View>
+              detail.is_special_events && <View className="success_text">{t('register.tip.submit_success')}</View>
             }
 
             {
