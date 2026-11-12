@@ -17,6 +17,18 @@ import Schema from "async-validator"
 
 const CHINA_ONLY_COUNTRY_ID = 6906;
 
+// 域名按 is_test 切换，与 pages/live/live.jsx 保持一致
+const API_LIST = {
+  dev: {
+    baseUrl: 'https://api-agency-cms.agent.dragontrail.cn',
+    liveUrl: 'https://api-live.agent.dragontrail.cn',
+  },
+  prod: {
+    baseUrl: 'https://api.agency-cms.dragontrail.com',
+    liveUrl: 'https://api.ctalive.com',
+  },
+}
+
 export default function Register (props) {
 
   const parsedParams = props.parsedParams; // 暂时保留的参数 后期可能需要
@@ -30,6 +42,8 @@ export default function Register (props) {
   const offline = parsedParams?.l === '1';
   const user_limit_exceed = parsedParams?.e === '1'; // 是否忽略报名限制
   const modelId = parsedParams?.modelId || 0; // 点击进来的模块id
+  const cid = parsedParams?.cid; // 公司id，有值时请求公司名称回填 company / company_en
+  const is_test_env = is_test === true // 是否测试环境
   const user = props.userInfo;
   const regions = props.regions;
   const [hasPrevPage, set_hasPrevPage] = useState(true);
@@ -45,6 +59,7 @@ export default function Register (props) {
   const [show_success, set_show_success] = useState(false);
   const [form_data, set_form_data] = useState({});
   const [company, set_company] = useState({});
+  const [corp_name, set_corp_name] = useState(''); // 根据 cid 请求到的公司名称
   const [is_off, set_is_off] = useState(true); // 开关
   const [user_limit_exceed_btn, set_user_limit_exceed_btn] = useState(false); // 报名人数已达上限或者报名已关闭按钮
 
@@ -66,6 +81,22 @@ export default function Register (props) {
     return replaced;
   }
 
+  // parsedParams.cid 有值时，请求公司信息，拿到 corp_name 用于回填 company / company_en
+  const getCorporationName = (corporation_id) => {
+    if (!corporation_id) { return }
+    const api = API_LIST[is_test_env ? 'dev' : 'prod'];
+    Taro.request({
+      url: `${api.liveUrl}/api/v1/system/corporation?corporation_id=${corporation_id}`,
+      method: 'GET',
+    }).then(res => {
+      const corp = res?.data?.data || res?.data || {};
+      const corporation_name = corp?.corp_name;
+      if (corporation_name) {
+        set_corp_name(`${corporation_name}`);
+      }
+    }).catch(() => {})
+  }
+
 
   useEffect(() => {
     const pages = Taro.getCurrentPages();
@@ -83,6 +114,11 @@ export default function Register (props) {
       getRegistrationInfo(props.detail);
     }
   }, [props.detail])
+
+  useEffect(() => {
+    if (!cid) { return }
+    getCorporationName(cid);
+  }, [cid])
 
   const handleErrors = msg => {
     Taro.showToast({
@@ -354,6 +390,15 @@ export default function Register (props) {
   const renderFormItem = (item) => {
     if (item.type === 'input') {
       if (item.attributes.type === 'text') {
+        let field_value = userInfo[item.uuid];
+        let backfill_disabled = false; // 回填后的公司字段禁止重新输入 / 选择
+        if (item.name === 'company' || item.name === 'company_name') {
+          // parsedParams.cid 有值时，不论原来有没有值都用接口返回的 corp_name 回填 company / company_en
+          if (corp_name) {
+            field_value = corp_name;
+            backfill_disabled = true;
+          }
+        }
         if (customCompany) {
           if (item.name === 'company_en' || item.name === 'company') {
             let copy_company = { ...company };
@@ -361,11 +406,11 @@ export default function Register (props) {
               copy_company[item.name] = item.uuid;
               set_company(copy_company);
             }
-            return <ItemSelectCompany languageData={languageData} maxlength={item.validations.maxLength} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} code_name={item.name} name={item.uuid} value={userInfo[item.uuid]} onChange={(val) => formChange(val, item)} />
+            return <ItemSelectCompany languageData={languageData} maxlength={item.validations.maxLength} required={item.validations.required} disabled={oldUserDisabled(item) || backfill_disabled} label={item.label} placeholder={item.placeholder} code_name={item.name} name={item.uuid} value={field_value} onChange={(val) => formChange(val, item)} />
           }
         }
 
-        return <ItemInput maxlength={item.validations.maxLength} required={item.validations.required} disabled={oldUserDisabled(item)} label={item.label} placeholder={item.placeholder} name={item.uuid} value={userInfo[item.uuid]} />
+        return <ItemInput maxlength={item.validations.maxLength} required={item.validations.required} disabled={oldUserDisabled(item) || backfill_disabled} label={item.label} placeholder={item.placeholder} name={item.uuid} value={field_value} />
       }
       if (item.attributes.type === 'radio') {
         return <>
@@ -478,6 +523,9 @@ export default function Register (props) {
         }
       })
       data.action = 'eventRegister';
+      if(cid){
+        data.corporation_id = cid;
+      }
       // 可以提交
       props.handleSubmit(data,(data)=>{
         if(data.code === 200 || data.code === 0){
