@@ -325,6 +325,11 @@ export default function Register (props) {
         form_user_data[item.uuid] = copy_user[item.name];
       }
 
+      if (item.default_value) {
+        form_user_data[item.uuid] = item.default_value;
+      }
+      // 只读预填（如 cid=116 的所属门店 = 顾问 ms 码）：以服务端下发的 default_value 为准，
+      // 放在最后，优先级高于用户档案里的值
       return rule
     }
     fields && fields.map(item => {
@@ -391,7 +396,7 @@ export default function Register (props) {
     if (item.type === 'input') {
       if (item.attributes.type === 'text') {
         let field_value = userInfo[item.uuid];
-        let backfill_disabled = false; // 回填后的公司字段禁止重新输入 / 选择
+        let backfill_disabled = false; // 回填后的字段禁止重新输入 / 选择
         if (item.name === 'company' || item.name === 'company_name') {
           // parsedParams.cid 有值时，不论原来有没有值都用接口返回的 corp_name 回填 company / company_en
           if (corp_name) {
@@ -399,6 +404,11 @@ export default function Register (props) {
             backfill_disabled = true;
           }
         }
+
+        if (item.editable === false && field_value) {
+          backfill_disabled = true;
+        }
+
         if (customCompany) {
           if (item.name === 'company_en' || item.name === 'company') {
             let copy_company = { ...company };
